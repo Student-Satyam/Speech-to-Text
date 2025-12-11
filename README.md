@@ -1,52 +1,82 @@
-# Whisper Speech-to-Text Streamlit App
+🎤 Speech-to-Text App (Whisper)
 
-This is a simple Streamlit web application that utilizes the OpenAI Whisper model to transcribe audio files into text.
+A fast and reliable Speech-to-Text web app built with Streamlit and Faster-Whisper.
+Upload any .mp3 or .wav file and get high-quality transcription instantly — fully compatible with Streamlit Cloud (no FFmpeg required).
 
-## Features
-- Upload an audio file (.mp3 or .wav).
-- Transcribe the audio using the Whisper 'base' model.
-- Display the transcribed text.
+🚀 Features
 
-## Setup and Installation
+Upload audio files (.mp3, .wav)
 
-1.  **Clone this repository** (if applicable) or ensure `app.py` and `requirements.txt` are in your working directory.
+Fast, accurate transcription
 
-2.  **Install the required Python packages** by running the following command in your terminal:
-    ```bash
-    pip install -r requirements.txt
-    ```
+Works on CPU-only environments (Streamlit Cloud)
 
-3.  **FFmpeg Requirement**: The `openai-whisper` library relies on `ffmpeg` for audio processing. Ensure `ffmpeg` is installed on your system. If you're using a Colab environment, it's usually pre-installed.
-    *   On Ubuntu/Debian:
-        ```bash
-        sudo apt update && sudo apt install ffmpeg
-        ```
-    *   On macOS (using Homebrew):
-        ```bash
-        brew install ffmpeg
-        ```
-    *   On Windows, you can download it from the official FFmpeg website and add it to your system's PATH.
+No FFmpeg installation needed
 
-## How to Run the Application
+Clean, simple Streamlit UI
 
-1.  **Save the Streamlit code**: Make sure you have the `app.py` file (generated previously).
+🛠️ Requirements
 
-2.  **Run the Streamlit app** from your terminal in the same directory as `app.py`:
-    ```bash
-    streamlit run app.py
-    ```
+requirements.txt
 
-3.  **For Google Colab users**: If you are running this in a Colab environment and want a public URL to share your app, use the following command:
-    ```bash
-    !streamlit run app.py & npx localtunnel --port 8501
-    ```
-    Follow the instructions provided by `localtunnel` to get your public URL.
+streamlit
+faster-whisper
+numpy
+torch
 
-## Usage
+▶️ Run Locally
+pip install -r requirements.txt
+streamlit run app.py
 
-Once the application is running:
-1.  Your web browser will open (or you'll navigate to the provided URL).
-2.  You will see an option to upload an audio file.
-3.  Upload your `.mp3` or `.wav` file.
-4.  Click the "Transcribe Audio" button.
-5.  The transcribed text will appear below.
+📁 Project Structure
+speech-to-text/
+├── app.py
+├── requirements.txt
+└── README.md
+
+🧠 How It Works
+
+User uploads audio
+
+App saves it to a temporary file
+
+Faster-Whisper transcribes the audio using the CPU
+
+Transcription is displayed in the browser
+
+🧪 Core Code Snippet
+from faster_whisper import WhisperModel
+import streamlit as st
+import tempfile, os
+
+@st.cache_resource
+def load_whisper_model():
+    return WhisperModel("base", device="cpu")
+
+model = load_whisper_model()
+
+audio = st.file_uploader("Upload audio", type=["mp3","wav"])
+if st.button("Transcribe") and audio:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        tmp.write(audio.getvalue())
+        path = tmp.name
+    segments, _ = model.transcribe(path)
+    text = " ".join([s.text for s in segments])
+    st.write(text)
+    os.remove(path)
+
+🌐 Deploy on Streamlit Cloud
+
+Push your project to GitHub
+
+Go to https://streamlit.io/cloud
+
+Select your repository
+
+Deploy — done!
+
+Streamlit Cloud installs everything automatically.
+
+📄 License
+
+MIT License — free to use and modify.
