@@ -4,10 +4,14 @@ import whisper
 import tempfile
 import numpy as np
 
+
 @st.cache_resource
 def load_whisper_model():
-    model = whisper.load_model("base", fp16=False)
+    model = whisper.load_model("base")   # no fp16 here
     return model
+
+# ...
+result = whisper_model.transcribe(tmp_file_path, fp16=False)
 
 # --- Streamlit App --- 
 st.title("AI Demos: Whisper (Speech to Text)")
