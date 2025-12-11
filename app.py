@@ -1,39 +1,31 @@
 import streamlit as st
-import os
-import whisper
+from faster_whisper import WhisperModel
 import tempfile
+import os
 
 @st.cache_resource
 def load_whisper_model():
-    model = whisper.load_model("base")   # no fp16 here
-    return model
+    return WhisperModel("base", device="cpu")
 
-# --- Streamlit App --- 
 st.title("AI Demos: Whisper (Speech to Text)")
 
-st.header("Whisper (Speech to Text)")
-whisper_model = load_whisper_model()
+model = load_whisper_model()
 
-audio_file = st.file_uploader("Upload an audio file (.mp3, .wav)", type=["mp3", "wav"])
+audio_file = st.file_uploader("Upload audio (.mp3, .wav)", type=["mp3", "wav"])
 
 if st.button("Transcribe Audio"):
-    if audio_file is not None:
-        with st.spinner("Transcribing audio..."):
+    if audio_file:
+        with st.spinner("Transcribing..."):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+                tmp.write(audio_file.getvalue())
+                tmp_path = tmp.name
 
-            # Save uploaded file temporarily
-            with tempfile.NamedTemporaryFile(delete=False, suffix="." + audio_file.name.split('.')[-1]) as tmp_file:
-                tmp_file.write(audio_file.getvalue())
-                tmp_file_path = tmp_file.name
+            segments, info = model.transcribe(tmp_path)
+            text = " ".join([s.text for s in segments])
 
-            try:
-                # Correct place for fp16=False
-                result = whisper_model.transcribe(tmp_file_path, fp16=False)
+            st.success("Transcribed Text:")
+            st.write(text)
 
-                st.success("Transcribed Text:")
-                st.write(result["text"])
-            except Exception as e:
-                st.error(f"Error during transcription: {e}")
-            finally:
-                os.remove(tmp_file_path)
+            os.remove(tmp_path)
     else:
-        st.warning("Please upload an audio file first.")
+        st.warning("Please upload audio first.")
